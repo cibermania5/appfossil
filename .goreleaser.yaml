@@ -20,6 +20,9 @@ builds:
       - arm64
     ldflags:
       - -s -w
+      - -X github.com/cibermania5/appfossil/internal/version.Version={{.Tag}}
+      - -X github.com/cibermania5/appfossil/internal/version.Commit={{.Commit}}
+      - -X github.com/cibermania5/appfossil/internal/version.Date={{.Date}}
 
 archives:
   - id: default

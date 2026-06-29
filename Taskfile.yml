@@ -12,9 +12,14 @@ tasks:
       - task: build
 
   build:
-    desc: Compile appfossil into the project root
+    desc: Compile appfossil into the project root (version from git tag)
     cmds:
-      - go build -o {{.BINARY}} .
+      - |
+        go build -ldflags "-s -w \
+          -X github.com/cibermania5/appfossil/internal/version.Version=$(git describe --tags --always --dirty 2>/dev/null || echo dev) \
+          -X github.com/cibermania5/appfossil/internal/version.Commit=$(git rev-parse --short HEAD 2>/dev/null || echo none) \
+          -X github.com/cibermania5/appfossil/internal/version.Date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+          -o {{.BINARY}} .
     sources:
       - '**/*.go'
       - go.mod
@@ -150,6 +155,15 @@ tasks:
       - goreleaser release --snapshot --clean
 
   release:
-    desc: Tag and publish a release via GoReleaser
+    desc: Tag and publish a release via GoReleaser (requires an annotated tag on HEAD)
     cmds:
       - goreleaser release --clean
+
+  tag:
+    desc: Create an annotated git tag (TAG=v0.2.0 MESSAGE="release notes")
+    preconditions:
+      - sh: test -n "{{.TAG}}"
+        msg: set TAG, e.g. task tag TAG=v0.2.0
+    cmds:
+      - git tag -a {{.TAG}} -m "{{.MESSAGE | default .TAG}}"
+      - echo "Created tag {{.TAG}} — push with git push origin {{.TAG}}"

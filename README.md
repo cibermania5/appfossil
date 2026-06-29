@@ -268,9 +268,12 @@ Tagged releases are built with [GoReleaser](https://goreleaser.com) for macOS
 Maintainers:
 
 ```bash
-task release:snapshot   # local dry-run artifacts in dist/
-git tag v0.1.0 && git push origin v0.1.0
-task release            # publish GitHub release + archives
+task build                     # embeds version from git describe
+./appfossil -version
+task tag TAG=v0.2.0            # create annotated tag
+git push origin v0.2.0
+task release                   # publish GitHub release + archives
+task release:snapshot          # local dry-run artifacts in dist/
 ```
 
 ## Usage
@@ -290,6 +293,12 @@ Flags:
 | `-json`            | Print a JSON report instead of the UI                | `false` |
 | `-md FILE`         | Write a Markdown report to `FILE` (`-` for stdout)   | _off_   |
 | `-stale-only`      | Only include stale apps in the report output         | `false` |
+| `-version`         | Print version and exit                                 | _off_   |
+
+```bash
+./appfossil -version
+# appfossil v0.2.0 (abc1234, 2026-06-29T12:00:00Z)
+```
 
 When stdout is piped (or `-json`/`-md` is set), a report is produced instead of
 the UI:

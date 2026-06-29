@@ -16,6 +16,7 @@ import (
 	"github.com/cibermania5/appfossil/internal/model"
 	"github.com/cibermania5/appfossil/internal/scan"
 	"github.com/cibermania5/appfossil/internal/tui"
+	"github.com/cibermania5/appfossil/internal/version"
 	"github.com/mattn/go-isatty"
 )
 
@@ -25,8 +26,14 @@ func main() {
 	asJSON := flag.Bool("json", false, "print a JSON report instead of the interactive UI")
 	mdPath := flag.String("md", "", "write a Markdown report to this file (use '-' for stdout)")
 	staleOnly := flag.Bool("stale-only", false, "only include stale apps in the report output")
+	showVersion := flag.Bool("version", false, "print version and exit")
 	flag.Usage = usage
 	flag.Parse()
+
+	if *showVersion {
+		fmt.Println(version.Line())
+		return
+	}
 
 	consoleMode := *asJSON || *mdPath != ""
 	interactive := !consoleMode && isatty.IsTerminal(os.Stdout.Fd())
@@ -85,6 +92,7 @@ Flags:
   -json             print a JSON report instead of the interactive UI
   -md FILE          write a Markdown report to FILE (use '-' for stdout)
   -stale-only       only include stale apps in the report output
+  -version          print version and exit
 
 With no flags and a terminal attached, an interactive TUI launches.
 When output is piped, or -json/-md is set, a report is produced instead.

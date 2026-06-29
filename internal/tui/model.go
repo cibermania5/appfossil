@@ -10,6 +10,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/cibermania5/appfossil/internal/model"
 	"github.com/cibermania5/appfossil/internal/scan"
+	"github.com/cibermania5/appfossil/internal/version"
 )
 
 // Config holds the runtime options for the TUI.
@@ -272,8 +273,8 @@ func (m Model) headerView() string {
 	stale, staleBytes := m.totals()
 	title := titleStyle.Render(" appfossil ")
 	summary := subtitleStyle.Render(fmt.Sprintf(
-		"  %d apps · %d stale (>%dd) · %s reclaimable",
-		len(m.view), stale, m.cfg.ThresholdDays, model.HumanSize(staleBytes),
+		"  %s · %d apps · %d stale (>%dd) · %s reclaimable",
+		version.Short(), len(m.view), stale, m.cfg.ThresholdDays, model.HumanSize(staleBytes),
 	))
 	header := title + summary
 	if !m.diag.KnowledgeReadable {
