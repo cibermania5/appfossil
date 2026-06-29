@@ -1,0 +1,42 @@
+# Compiled binary
+/appfossil
+
+# Generated reports and exports
+/report.md
+/report.html
+/README.html
+*.report.md
+apps.json
+
+# Go build and test artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/coverage.out
+/coverage.html
+*.prof
+*.pprof
+/vendor/
+/.cache/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editors and IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
