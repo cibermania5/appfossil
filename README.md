@@ -240,7 +240,18 @@ task build      # compile ./appfossil
 task test       # run tests
 task run        # launch the TUI
 task report:md  # write report.md
+task remove:preview              # show removal commands (dry run)
+task remove:stale                # remove stale apps (prompts first)
+task remove:stale DAYS=180       # use a 180-day threshold
+task remove:preview APP=PixelForge   # preview one app (case-insensitive substring)
+task remove:stale APP="ArchiveRipper"  # remove a single matching stale app
 ```
+
+> [!CAUTION]
+> `task remove:stale` shows a warning and the exact shell commands, then asks you
+> to type `yes` before running anything. Use `task remove:preview` to review
+> without prompts. System apps are never included. Requires
+> [jq](https://jqlang.org/).
 
 Optionally install it on your `PATH`:
 

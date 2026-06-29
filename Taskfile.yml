@@ -2,6 +2,8 @@ version: '3'
 
 vars:
   BINARY: appfossil
+  DAYS: 90
+  APP: ''
 
 tasks:
   default:
@@ -60,6 +62,87 @@ tasks:
     desc: Write a Markdown report to report.md
     cmds:
       - go run . -md report.md
+
+  remove:preview:
+    desc: List shell commands to remove stale apps (dry run; optional APP= name filter; requires jq)
+    deps: [build]
+    preconditions:
+      - sh: command -v jq >/dev/null
+        msg: jq is required — install with brew install jq
+    cmds:
+      - task: remove:run
+        vars: { DRY_RUN: 'true' }
+
+  remove:stale:
+    desc: Remove stale apps after confirmation (optional APP= name filter; requires jq)
+    deps: [build]
+    preconditions:
+      - sh: command -v jq >/dev/null
+        msg: jq is required — install with brew install jq
+    cmds:
+      - task: remove:run
+        vars: { DRY_RUN: 'false' }
+
+  remove:run:
+    internal: true
+    deps: [build]
+    cmds:
+      - |
+        set -euo pipefail
+        json=$(./{{.BINARY}} -stale-only -days {{.DAYS}} -json)
+        if [ -n "{{.APP}}" ]; then
+          json=$(echo "$json" | jq --arg app "{{.APP}}" '
+            [.[] | select(.remove_command) | select(.name | ascii_downcase | contains($app | ascii_downcase))]
+          ')
+          scope="matching \"{{.APP}}\""
+        else
+          json=$(echo "$json" | jq '[.[] | select(.remove_command)]')
+          scope="with removal commands"
+        fi
+        count=$(echo "$json" | jq 'length')
+        if [ "$count" -eq 0 ]; then
+          if [ -n "{{.APP}}" ]; then
+            echo "No removable stale app matching \"{{.APP}}\" (threshold: {{.DAYS}} days)."
+          else
+            echo "No removable stale apps found (threshold: {{.DAYS}} days)."
+          fi
+          exit 0
+        fi
+        if [ "{{.DRY_RUN}}" = "true" ]; then
+          echo "$count stale app(s) $scope (threshold: {{.DAYS}} days):"
+          echo "$json" | jq -r '.[] | "\(.name)\t\(.remove_command)"'
+          exit 0
+        fi
+
+        echo "WARNING: You are about to remove $count stale app(s) $scope."
+        echo
+        echo "  - brew uninstall --cask is permanent and cannot be undone from Trash."
+        echo "  - mv to ~/.Trash/ is reversible until you empty the Trash."
+        echo "  - Quit each app before removing it."
+        echo "  - System apps are never included."
+        echo
+        echo "The following commands will be executed:"
+        echo "$json" | jq -r '.[] | "  \(.name): \(.remove_command)"'
+        echo
+        printf "Type 'yes' to continue, anything else to abort: "
+        if ! read -r reply; then
+          echo
+          echo "Aborted."
+          exit 1
+        fi
+        if [ "$reply" != "yes" ]; then
+          echo "Aborted."
+          exit 1
+        fi
+        echo
+        echo "$json" | jq -r '.[] | .remove_command' | while IFS= read -r line; do
+          [ -z "$line" ] && continue
+          cmd="${line%% #*}"
+          cmd="${cmd%"${cmd##*[![:space:]]}"}"
+          echo "→ $cmd"
+          eval "$cmd"
+        done
+        echo "Done."
 
   release:snapshot:
     desc: Build release artifacts locally (no publish)
