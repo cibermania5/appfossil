@@ -107,18 +107,19 @@ func filterStale(apps []model.AppInfo, days int) []model.AppInfo {
 }
 
 type jsonApp struct {
-	Name          string  `json:"name"`
-	Path          string  `json:"path"`
-	BundleID      string  `json:"bundle_id"`
-	Version       string  `json:"version"`
-	Source        string  `json:"source"`
-	CaskToken     string  `json:"cask_token,omitempty"`
-	LastUsed      *string `json:"last_used"`
-	LastUsedAprox bool    `json:"last_used_approx"`
-	LastUsedFrom  string  `json:"last_used_from"`
-	DaysSinceUsed int     `json:"days_since_used"`
-	SizeBytes     int64   `json:"size_bytes"`
-	Stale         bool    `json:"stale"`
+	Name           string  `json:"name"`
+	Path           string  `json:"path"`
+	BundleID       string  `json:"bundle_id"`
+	Version        string  `json:"version"`
+	Source         string  `json:"source"`
+	CaskToken      string  `json:"cask_token,omitempty"`
+	LastUsed       *string `json:"last_used"`
+	LastUsedAprox  bool    `json:"last_used_approx"`
+	LastUsedFrom   string  `json:"last_used_from"`
+	DaysSinceUsed  int     `json:"days_since_used"`
+	SizeBytes      int64   `json:"size_bytes"`
+	Stale          bool    `json:"stale"`
+	RemoveCommand  string  `json:"remove_command,omitempty"`
 }
 
 func printJSON(apps []model.AppInfo, days int) {
@@ -129,7 +130,7 @@ func printJSON(apps []model.AppInfo, days int) {
 			s := a.LastUsed.Format("2006-01-02T15:04:05Z07:00")
 			last = &s
 		}
-		out = append(out, jsonApp{
+		entry := jsonApp{
 			Name:          a.Name,
 			Path:          a.Path,
 			BundleID:      a.BundleID,
@@ -142,7 +143,11 @@ func printJSON(apps []model.AppInfo, days int) {
 			DaysSinceUsed: a.DaysSinceUsed,
 			SizeBytes:     a.SizeBytes,
 			Stale:         a.IsStale(days),
-		})
+		}
+		if cmd, ok := removalCommand(a); ok {
+			entry.RemoveCommand = cmd
+		}
+		out = append(out, entry)
 	}
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")

@@ -128,7 +128,8 @@ WidgetLab              Never        128.0 MB   App Store
     "last_used_from": "Library activity",
     "days_since_used": 892,
     "size_bytes": 1288490188,
-    "stale": true
+    "stale": true,
+    "remove_command": "mv \"/Applications/ArchiveRipper 2019.app\" ~/.Trash/  # ArchiveRipper 2019"
   },
   {
     "name": "PixelForge Studio",
@@ -141,7 +142,8 @@ WidgetLab              Never        128.0 MB   App Store
     "last_used_from": "Spotlight",
     "days_since_used": 142,
     "size_bytes": 933232640,
-    "stale": true
+    "stale": true,
+    "remove_command": "mv \"/Applications/PixelForge Studio.app\" ~/.Trash/  # PixelForge Studio"
   },
   {
     "name": "WidgetLab",
@@ -154,10 +156,14 @@ WidgetLab              Never        128.0 MB   App Store
     "last_used_from": "unknown",
     "days_since_used": -1,
     "size_bytes": 134217728,
-    "stale": true
+    "stale": true,
+    "remove_command": "mv \"/Applications/WidgetLab.app\" ~/.Trash/  # WidgetLab"
   }
 ]
 ```
+
+Each removable app includes a `remove_command` field with a copy-paste shell command
+(same suggestions as the Markdown report). System apps omit the field.
 
 Pipe into `jq` for quick summaries:
 

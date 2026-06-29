@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -172,5 +173,52 @@ func TestMarkdownCellEscapesActiveContent(t *testing.T) {
 	}
 	if !strings.Contains(got, `Bad\|`) {
 		t.Fatalf("mdCell(%q) = %q, expected escaped pipe", input, got)
+	}
+}
+
+func TestPrintJSONRemoveCommand(t *testing.T) {
+	apps := []model.AppInfo{
+		{
+			Name:      "Obsidian",
+			Path:      "/Applications/Obsidian.app",
+			Source:    model.SourceHomebrew,
+			CaskToken: "obsidian",
+		},
+		{
+			Name:   "Notes",
+			Path:   "/System/Applications/Notes.app",
+			Source: model.SourceSystem,
+		},
+	}
+
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	os.Stdout = w
+	printJSON(apps, 90)
+	w.Close()
+	os.Stdout = old
+
+	var out []jsonApp
+	if err := json.NewDecoder(r).Decode(&out); err != nil {
+		t.Fatal(err)
+	}
+	if len(out) != 2 {
+		t.Fatalf("got %d apps, want 2", len(out))
+	}
+	if out[0].RemoveCommand != "brew uninstall --cask obsidian  # Obsidian" {
+		t.Errorf("brew app remove_command = %q", out[0].RemoveCommand)
+	}
+	if out[1].RemoveCommand != "" {
+		t.Errorf("system app should omit remove_command, got %q", out[1].RemoveCommand)
+	}
+	raw, err := json.Marshal(out[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(raw), "remove_command") {
+		t.Errorf("system app JSON should omit remove_command: %s", raw)
 	}
 }
